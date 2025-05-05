@@ -24,10 +24,30 @@ logger = logging.getLogger(__name__)
 
 # Initialize Flask app
 app = Flask(__name__)
-CORS(app)  # Enable CORS for all routes
+# Enable CORS for all routes
+CORS(app, resources={
+     r"/api/*": {"origins": "https://pharmashop.onrender.com"}})
 
 # Get bot token from environment or use as parameter
 DEFAULT_BOT_TOKEN = os.getenv('TELEGRAM_BOT_TOKEN')
+
+
+@app.before_request
+def log_request_info():
+    app.logger.info(f"Request: {request.method} {request.url}")
+
+
+@app.route('/test-cors', methods=['GET', 'OPTIONS'])
+def test_cors():
+    return jsonify({"message": "CORS is working!"})
+
+
+@app.after_request
+def add_cors_headers(response):
+    response.headers['Access-Control-Allow-Origin'] = 'https://pharmashop.onrender.com'
+    response.headers['Access-Control-Allow-Methods'] = 'GET, POST, OPTIONS'
+    response.headers['Access-Control-Allow-Headers'] = 'Content-Type'
+    return response
 
 
 def send_telegram_request(
